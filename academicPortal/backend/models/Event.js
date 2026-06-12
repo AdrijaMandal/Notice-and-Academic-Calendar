@@ -14,6 +14,14 @@ const eventSchema = new mongoose.Schema(
     location: { type: String },
     isAllDay: { type: Boolean, default: true },
     color: { type: String, default: '#4f46e5' },
+    degree: { type: String, enum: ['BTech', 'MTech'], trim: true },
+    year: { type: Number },
+    department: { type: String, trim: true },
+    classTiming: { type: String, trim: true },
+    isCancelled: { type: Boolean, default: false },
+    attachmentUrl: { type: String },
+    attachmentName: { type: String },
+    attachmentType: { type: String },
   },
   { timestamps: true }
 );

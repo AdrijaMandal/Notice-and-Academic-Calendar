@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Event = require('../models/Event');
+const auth = require('../middleware/auth');
+
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Admin access required.' });
+  next();
+};
 
 // GET all events (with optional month/year filter)
 router.get('/', async (req, res) => {
@@ -11,6 +17,17 @@ router.get('/', async (req, res) => {
       const end = new Date(req.query.year, req.query.month, 0, 23, 59, 59);
       filter.date = { $gte: start, $lte: end };
     }
+    if (req.query.degree) filter.degree = req.query.degree;
+
+    const conditions = [];
+    if (req.query.year && !req.query.month) {
+      conditions.push({ $or: [{ year: Number(req.query.year) }, { year: { $exists: false } }] });
+    }
+    if (req.query.department) {
+      conditions.push({ $or: [{ department: req.query.department }, { department: { $exists: false } }] });
+    }
+    if (conditions.length) filter.$and = conditions;
+
     const events = await Event.find(filter).sort({ date: 1 });
     res.json(events);
   } catch (err) {
@@ -30,7 +47,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create event
-router.post('/', async (req, res) => {
+router.post('/', auth, requireAdmin, async (req, res) => {
   try {
     const event = new Event(req.body);
     const saved = await event.save();
@@ -41,7 +58,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update event
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, requireAdmin, async (req, res) => {
   try {
     const updated = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updated) return res.status(404).json({ message: 'Event not found' });
@@ -52,7 +69,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE event
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, requireAdmin, async (req, res) => {
   try {
     const deleted = await Event.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'Event not found' });

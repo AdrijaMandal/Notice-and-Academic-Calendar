@@ -121,10 +121,15 @@ For MongoDB Atlas, use the connection string from Atlas:
 ```bash
 MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/academicPortal?retryWrites=true&w=majority
 JWT_SECRET=some_long_secret
+DEFAULT_ADMIN_EMAIL=admin@example.com
+DEFAULT_ADMIN_PASSWORD=ChangeMe123!
+DEFAULT_ADMIN_NAME=Academic Portal Admin
 PORT=5000
 ```
 
-> Important: do not commit your real Atlas password or JWT secret to source control.
+> Important: do not commit your real Atlas password, JWT secret, or admin credentials to source control.
+
+When the backend starts, it will automatically create a default admin user if one does not already exist. That admin account cannot be created through the user registration flow.
 
 ### Connecting in MongoDB Compass
 
@@ -165,6 +170,32 @@ MONGO_URI_FALLBACK=mongodb://<username>:<password>@<host1>:27017,<host2>:27017,<
 ```
 
 This project now supports `MONGO_URI_FALLBACK` so the backend will automatically try the fallback if SRV lookup fails.
+
+### Deploying to Render
+
+For Render deployment, do not rely on `backend/.env` inside source control. Instead set the same variables in the Render dashboard.
+
+1. Open your Render service.
+2. Go to `Environment` or `Environment Variables`.
+3. Add these keys:
+   - `PORT` → `5000`
+   - `MONGO_URI` → your Atlas connection string
+   - `MONGO_URI_FALLBACK` → optional fallback connection string
+   - `JWT_SECRET` → a secure random string
+
+Render injects those values at runtime, so the backend will read them automatically.
+
+If Render still cannot connect to MongoDB Atlas, the issue is usually Atlas network access.
+
+### MongoDB Atlas whitelist for Render
+
+Atlas must allow Render's outbound IP address. If you do not have a static Render IP range, use this approach during testing:
+
+- In Atlas, go to **Network Access** → **IP Access List**.
+- Add `0.0.0.0/0` temporarily to allow all IPs.
+- Save and retry the Render deployment.
+
+After deployment works, tighten the whitelist if you can to a smaller CIDR range.
 
 ### Atlas whitelist and Compass access
 

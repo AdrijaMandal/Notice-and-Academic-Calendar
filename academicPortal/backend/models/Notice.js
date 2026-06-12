@@ -9,9 +9,17 @@ const noticeSchema = new mongoose.Schema(
       enum: ['General', 'Exam', 'Holiday', 'Event', 'Urgent'],
       default: 'General',
     },
+    // Academic targeting
+    degree: { type: String, enum: ['BTech', 'MTech'], trim: true },
+    year: { type: Number },
+    department: { type: String, trim: true },
     isImportant: { type: Boolean, default: false },
     postedBy: { type: String, default: 'Administration' },
+    classTiming: { type: String, trim: true },
+    isCancelled: { type: Boolean, default: false },
     attachmentUrl: { type: String },
+    attachmentName: { type: String },
+    attachmentType: { type: String },
   },
   { timestamps: true }
 );

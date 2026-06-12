@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const dns = require('dns');
 const { URL, URLSearchParams } = require('url');
+let mongoMemoryServer = null;
 
 async function resolveSrvRecord(name) {
   const resolver = dns.promises;
@@ -67,6 +68,19 @@ function getReplicaSetName(hostname) {
 async function connectDatabase(uri, fallbackUri = null) {
   mongoose.set('strictQuery', false);
 
+  if (!uri) {
+    try {
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      mongoMemoryServer = await MongoMemoryServer.create();
+      const memUri = mongoMemoryServer.getUri();
+      console.warn('No MONGO_URI provided — using in-memory MongoDB for development:', memUri);
+      uri = memUri;
+    } catch (memErr) {
+      console.error('Failed to start in-memory MongoDB:', memErr.message || memErr);
+      throw memErr;
+    }
+  }
+
   if (uri.startsWith('mongodb+srv://')) {
     ensurePublicDnsForSrv();
   }
@@ -97,14 +111,60 @@ async function connectDatabase(uri, fallbackUri = null) {
     }
 
     const shouldFallback = err.message && err.message.includes('querySrv');
-    if (!shouldFallback) throw err;
+    if (fallbackUri) {
+      console.warn('Atlas fallback failed; trying local MongoDB before in-memory fallback.');
+    } else if (!shouldFallback) {
+      console.warn('Atlas connection failed; trying local MongoDB before in-memory fallback.');
+    }
 
-    const fallbackFromSrv = await buildFallbackUri(uri);
-    if (!fallbackFromSrv) throw err;
+    if (fallbackUri) {
+      // already tried fallbackUri above and it failed
+    } else if (shouldFallback) {
+      const fallbackFromSrv = await buildFallbackUri(uri);
+      if (fallbackFromSrv) {
+        try {
+          console.warn('MongoDB SRV lookup failed; trying fallback URI derived from SRV hosts:', fallbackFromSrv);
+          await mongoose.connect(fallbackFromSrv, options);
+          return mongoose.connection;
+        } catch (fallbackSrvErr) {
+          console.warn('Fallback-from-SRV connection failed:', fallbackSrvErr.message || fallbackSrvErr);
+        }
+      }
+    }
 
-    console.warn('MongoDB SRV lookup failed; trying fallback URI derived from SRV hosts:', fallbackFromSrv);
-    await mongoose.connect(fallbackFromSrv, options);
-    return mongoose.connection;
+    const localUri = 'mongodb://127.0.0.1:27017/academicPortal';
+    if (!uri.startsWith('mongodb://127.0.0.1') && !uri.startsWith('mongodb://localhost')) {
+      try {
+        console.warn('Trying local MongoDB fallback:', localUri);
+        await mongoose.connect(localUri, options);
+        return mongoose.connection;
+      } catch (localErr) {
+        console.warn('Local MongoDB fallback failed:', localErr.message || localErr);
+      }
+    }
+
+    try {
+      const { MongoMemoryServer } = require('mongodb-memory-server');
+      mongoMemoryServer = await MongoMemoryServer.create();
+      const memUri = mongoMemoryServer.getUri();
+      console.warn('Using in-memory MongoDB after remote and local fallback failures:', memUri);
+      await mongoose.connect(memUri, options);
+      return mongoose.connection;
+    } catch (memErr) {
+      console.error('Failed to start in-memory MongoDB after remote and local failures:', memErr.message || memErr);
+      throw err;
+    }
+  }
+}
+
+async function stopInMemoryServer() {
+  if (mongoMemoryServer) {
+    try {
+      await mongoMemoryServer.stop();
+      mongoMemoryServer = null;
+    } catch (e) {
+      console.warn('Error stopping in-memory MongoDB:', e.message || e);
+    }
   }
 }
 

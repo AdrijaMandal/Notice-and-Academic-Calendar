@@ -14,6 +14,9 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(ROLES.STUDENT);
+  const [degree, setDegree] = useState('BTech');
+  const [year, setYear] = useState('1');
+  const [department, setDepartment] = useState('CSE');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -27,7 +30,7 @@ export default function Login() {
     setLoading(true);
     const result = mode === 'login'
       ? await login(email, password)
-      : await register(name, email, password, role);
+      : await register(name, email, password, role, degree, Number(year), department);
 
     if (!result.success) setError(result.message);
     setLoading(false);
@@ -61,13 +64,15 @@ export default function Login() {
             {mode === 'login' ? 'Sign in to your portal' : 'Register with your college email'}
           </div>
 
-          <div className="login-form">
+          <div className="login-form" autoComplete="off">
             {mode === 'register' && (
               <div className="form-row">
                 <label className="form-label">Full Name</label>
                 <input
                   className="form-input"
                   type="text"
+                  name="name"
+                  autoComplete="name"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -80,6 +85,8 @@ export default function Login() {
               <input
                 className="form-input"
                 type="email"
+                name="email"
+                autoComplete="off"
                 placeholder="your@college.edu"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -91,6 +98,8 @@ export default function Login() {
               <input
                 className="form-input"
                 type="password"
+                name="password"
+                autoComplete="new-password"
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -103,9 +112,39 @@ export default function Login() {
                 <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
                   <option value={ROLES.STUDENT}>Student</option>
                   <option value={ROLES.FACULTY}>Faculty</option>
-                  <option value={ROLES.ADMIN}>Admin</option>
                 </select>
               </div>
+            )}
+            {mode === 'register' && role === ROLES.STUDENT && (
+              <>
+                <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <label className="form-label">Degree</label>
+                    <select className="form-select" value={degree} onChange={(e) => { setDegree(e.target.value); setYear(e.target.value === 'BTech' ? '1' : '1'); }}>
+                      <option>BTech</option>
+                      <option>MTech</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label">Year</label>
+                    <select className="form-select" value={year} onChange={(e) => setYear(e.target.value)}>
+                      {degree === 'BTech' ? ['1', '2', '3', '4'].map(y => <option key={y}>{y}</option>) : ['1', '2'].map(y => <option key={y}>{y}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="form-row">
+                  <label className="form-label">Department</label>
+                  <select className="form-select" value={department} onChange={(e) => setDepartment(e.target.value)}>
+                    <option>CSE</option>
+                    <option>IT</option>
+                    <option>ECE</option>
+                    <option>AI&ML</option>
+                    <option>EE</option>
+                    <option>AI&DS</option>
+                    <option>IoT</option>
+                  </select>
+                </div>
+              </>
             )}
             {error && <div className="login-error">⚠️ {error}</div>}
             <button

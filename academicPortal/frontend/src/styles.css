@@ -198,6 +198,90 @@ body { font-family: var(--font-body); background: var(--cream); color: var(--tex
 }
 .logout-btn:hover { background: rgba(255,255,255,0.2); color: var(--white); }
 
+.notification-bell {
+  position: relative;
+}
+
+.bell-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: var(--white);
+  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.bell-badge {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bell-dropdown {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  width: 280px;
+  background: var(--white);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(15,23,42,0.16);
+  border: 1px solid rgba(15,23,42,0.08);
+  padding: 0.75rem;
+  z-index: 120;
+}
+
+.bell-dropdown-header {
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.bell-item {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(15,23,42,0.08);
+}
+
+.bell-item:last-child { border-bottom: none; }
+
+.bell-item-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.bell-item-detail {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.bell-empty {
+  padding: 1rem 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.bell-dropdown-footer {
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
 /* ══════════════════════════════════════
    ROLE BADGE
 ══════════════════════════════════════ */

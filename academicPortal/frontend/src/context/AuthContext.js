@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import axios from 'axios';
 
+
 const AuthContext = createContext(null);
 
 export const ROLES = {
@@ -65,9 +66,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, role = ROLES.STUDENT) => {
+  const register = async (name, email, password, role = ROLES.STUDENT, degree, year, department) => {
     try {
-      const response = await axios.post('/api/auth/register', { name, email, password, role });
+      const response = await axios.post('/api/auth/register', { name, email, password, role, degree, year, department });
       saveSession(response.data.user, response.data.token);
       return { success: true };
     } catch (err) {
@@ -86,10 +87,25 @@ export function AuthProvider({ children }) {
     setAuthHeader(null);
   };
 
-  const canEdit = user && (user.role === ROLES.ADMIN || user.role === ROLES.FACULTY);
+  const updateProfile = async (degree, year, department) => {
+    try {
+      const response = await axios.put('/api/auth/profile', { degree, year, department });
+      saveSession(response.data.user, response.data.token);
+      return { success: true };
+    } catch (err) {
+      console.error('Profile update error:', err);
+      let msg = 'Profile update failed.';
+      if (err?.response?.data) msg = typeof err.response.data === 'string' ? err.response.data : (err.response.data.message || JSON.stringify(err.response.data));
+      else if (err?.message) msg = err.message;
+      return { success: false, message: msg };
+    }
+  };
+
+  const canEdit = user && user.role === ROLES.ADMIN;
+  const canAdmin = canEdit;
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, canEdit, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, canEdit, canAdmin, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

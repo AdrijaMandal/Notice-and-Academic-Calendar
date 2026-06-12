@@ -3,13 +3,14 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { connectDatabase } = require('./db');
 const { URL } = require('url');
 
-const { MONGO_URI, MONGO_URI_FALLBACK, JWT_SECRET } = process.env;
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI || process.env.ATLAS_URI;
+const { MONGO_URI_FALLBACK, JWT_SECRET } = process.env;
 if (!MONGO_URI) {
-  console.error('ERROR: MONGO_URI is not set in backend/.env');
+  console.error('ERROR: MONGO_URI is not set. Please add your MongoDB Atlas connection string to backend/.env or set MONGO_URI / MONGODB_URI / ATLAS_URI in the environment.');
   process.exit(1);
 }
 if (!JWT_SECRET) {
-  console.error('ERROR: JWT_SECRET is not set in backend/.env');
+  console.error('ERROR: JWT_SECRET is not set in backend/.env or the environment.');
   process.exit(1);
 }
 

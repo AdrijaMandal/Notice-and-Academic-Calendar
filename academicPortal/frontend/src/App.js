@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Notices from './components/Notices';
 import Calendar from './components/Calendar';
+import Settings from './components/Settings';
+import NotificationBell from './components/NotificationBell';
 
 const ROLE_META = {
   student: { icon: '🎓', color: '#4f46e5' },
@@ -37,7 +39,12 @@ function Portal() {
           <button className={`nav-btn ${page === 'calendar' ? 'active' : ''}`} onClick={() => setPage('calendar')}>
             📅 Calendar
           </button>
+          <button className={`nav-btn ${page === 'settings' ? 'active' : ''}`} onClick={() => setPage('settings')}>
+            ⚙️ Settings
+          </button>
         </nav>
+
+        <NotificationBell />
 
         <div className="header-user">
           <div className="header-user-avatar" style={{ background: meta.color }}>
@@ -56,6 +63,7 @@ function Portal() {
       <main className="main">
         {page === 'notices'  && <Notices />}
         {page === 'calendar' && <Calendar />}
+        {page === 'settings' && <Settings />}
       </main>
 
       <footer className="footer">
